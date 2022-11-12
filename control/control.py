@@ -4,14 +4,17 @@ from model.models import *
 class CustomerController:
 
     @staticmethod
-    def get_all(car_amount: int = None) -> list:
+    def get_all(car_amount: int = None) -> list or bool:
         """
         Get all customers, it is possible to filter by car amount
         :param car_amount: amount of cars to filter
         :return: list of customers
         """
-        customer_list = Customer.get(car_amount=car_amount)
-        return [customer.__repr__() for customer in customer_list]
+        try:
+            customer_list = Customer.get(car_amount=car_amount)
+            return [customer.__repr__() for customer in customer_list]
+        except:
+            return False
 
     @staticmethod
     def get_one(id_customer: int) -> dict or None:
@@ -20,11 +23,14 @@ class CustomerController:
         :param id_customer: customer id on database
         :return: equivalent Customer of that id or None
         """
-        query_result = Customer.get(customer_id=id_customer)
-        if query_result and len(query_result) == 1:
+        try:
+            query_result = Customer.get(customer_id=id_customer)
+            if query_result and len(query_result) == 1:
 
-            return query_result[0].__repr__()
-        return None
+                return query_result[0].__repr__()
+            return None
+        except:
+            return None
 
     @staticmethod
     def create_customer(name: str, email: str, cellphone: str) -> bool:
@@ -93,15 +99,18 @@ class CustomerController:
 class CarController:
 
     @staticmethod
-    def get_all(color: str = None, model: str = None) -> list:
+    def get_all(color: str = None, model: str = None) -> list or bool:
         """
         Get all cars, it is possible to filter by color and/or model
         :param color: filter by car color
         :param model: filter by car model
         :return: list of cars that matches the filters
         """
-        car_list = Car.get(color=color, model=model)
-        return [car.__repr__() for car in car_list]
+        try:
+            car_list = Car.get(color=color, model=model)
+            return [car.__repr__() for car in car_list]
+        except:
+            return False
 
     @staticmethod
     def get_one(id_car: int) -> dict or None:
@@ -110,10 +119,13 @@ class CarController:
         :param id_car: car id on database
         :return: car json representation or None if not found
         """
-        query_result = Car.get(id_car=id_car)
-        if query_result and len(query_result) == 1:
-            return query_result[0].__repr__()
-        return None
+        try:
+            query_result = Car.get(id_car=id_car)
+            if query_result and len(query_result) == 1:
+                return query_result[0].__repr__()
+            return None
+        except:
+            return None
 
     @staticmethod
     def create_car(id_owner: int, color: str, model: str) -> (bool, str):

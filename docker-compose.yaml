@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+    db:
+        container_name: "db_container"
+        build:
+          context: .
+          dockerfile: ./dockerfile_db.dockerfile
+        ports:
+        - 5431:5431
+    new_app:
+        container_name: "app"
+        build:
+          context: .
+          dockerfile: ./docker_application.dockerfile
+        depends_on:
+          - db
+

@@ -5,7 +5,7 @@ from utils.utils import *
 
 config = create_config()
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:root@localhost:5432/postgres'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:advicehealth@localhost:5431/postgres'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.sort_keys = False
 
@@ -17,7 +17,9 @@ def customer():
     if request.method == 'GET':
         car_amount = request.args.get('car_amount')
         items = CustomerController.get_all(car_amount=car_amount)
-        return jsonify(items)
+        if items is not False:
+            return jsonify(items)
+        return jsonify({"message": "Something went wrong retrieving customers"}), 400
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
@@ -74,7 +76,9 @@ def car():
         color = request.args.get('color')
         model = request.args.get('model')
         items = CarController.get_all(color=color, model=model)
-        return jsonify(items)
+        if items:
+            return jsonify(items)
+        return jsonify({"message": "Something went wrong retrieving cars"}), 400
 
     if request.method == 'POST':
         id_owner = request.form.get('id_owner')
