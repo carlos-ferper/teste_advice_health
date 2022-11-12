@@ -22,6 +22,10 @@ Install requirements
 pip freeze requirements.txt
 ```
 
+### 🔧 Usage
+
+Use port 5000 on localhost 
+
 ## 🛠️ Made With
 
 
