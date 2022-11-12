@@ -1,19 +1,16 @@
-import configparser
 import enum
-
+from utils.utils import *
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Enum
 from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-
+config = create_config()
 
 class Customer(db.Model):
     __tablename__ = "customer"
-    __table_args__ = {"schema": config['database']['schema']}
+    __table_args__ = {"schema": 'carford'}
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())
@@ -68,12 +65,12 @@ class EnumModel(enum.Enum):
 
 class Car(db.Model):
     __tablename__ = "car"
-    __table_args__ = {"schema": config['database']['schema']}
+    __table_args__ = {"schema": 'carford'}
 
     id = db.Column(db.Integer, primary_key=True)
     id_owner = db.Column(db.Integer, db.ForeignKey('carford.customer.id'))
-    model = db.Column(Enum(EnumModel, schema=config['database']['schema']), )
-    color = db.Column(Enum(EnumColor, schema=config['database']['schema']))
+    model = db.Column(Enum(EnumModel, schema='carford'), )
+    color = db.Column(Enum(EnumColor, schema='carford'))
     owner = relationship('Customer')
 
     def __init__(self, owner: Customer, model, color):

@@ -1,4 +1,4 @@
-from models import *
+from model.models import *
 
 
 class CustomerController:

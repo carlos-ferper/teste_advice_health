@@ -1,4 +1,11 @@
 import re
+import configparser
+
+
+def create_config():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    return config
 
 
 def name_validator(name: str) -> bool:

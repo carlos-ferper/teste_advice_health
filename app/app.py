@@ -1,13 +1,13 @@
 from flask import Flask, request, jsonify
-from control import *
-from models import db, config
-from validators import *
+from control.control import *
+from model.models import db
+from utils.utils import *
 
-
+config = create_config()
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = config['database']['uri']
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:root@localhost:5432/postgres'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JSON_SORT_KEYS'] = False
+app.json.sort_keys = False
 
 db.init_app(app)
 
@@ -131,6 +131,13 @@ with app.app_context():
     print('Creating Database...')
     db.create_all()
     print('All Done!')
+
+
+def create_app():
+    """ Cria instância do flask. """
+    app = Flask(__name__)
+    return app
+
 
 if __name__ == '__main__':
     app.run()
