@@ -7,6 +7,9 @@ services:
           dockerfile: ./dockerfile_db.dockerfile
         ports:
         - 5431:5431
+        networks:
+            - app-tier
+        hostname: postgres
     new_app:
         container_name: "app"
         build:
@@ -14,4 +17,11 @@ services:
           dockerfile: ./docker_application.dockerfile
         depends_on:
           - db
+        networks:
+          - app-tier
+        ports:
+        - 5000:5000
 
+networks:
+  app-tier:
+    driver: bridge

@@ -5,7 +5,7 @@ from utils.utils import *
 
 config = create_config()
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:advicehealth@localhost:5431/postgres'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:advicehealth@db_container:5432/postgres'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.sort_keys = False
 
