@@ -6,7 +6,6 @@ this project emulates the system of a shop that sells cars to residents of the c
 
 Instructions to install this system
 
-Consulte **[Implantação](#-implanta%C3%A7%C3%A3o)** para saber como implantar o projeto.
 
 ### 📋 Requirements
 
