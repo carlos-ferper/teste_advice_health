@@ -1,104 +1,136 @@
 from flask import Flask, request, jsonify
-from models import *
+from control import *
+from models import db, config
+from validators import *
+
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = ''
+app.config['SQLALCHEMY_DATABASE_URI'] = config['database']['uri']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['JSON_SORT_KEYS'] = False
 
 db.init_app(app)
 
 
 @app.route('/customer', methods=['GET', 'POST'])
 def customer():
-    # TODO: remover esse create all daqui e colocar em algum outro lugar
-    db.create_all()
     if request.method == 'GET':
-        items = [customer.__repr__() for customer in Customer.get()]
+        car_amount = request.args.get('car_amount')
+        items = CustomerController.get_all(car_amount=car_amount)
         return jsonify(items)
     if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        cellphone = request.form['cellphone']
+        name = request.form.get('name')
+        email = request.form.get('email')
+        cellphone = request.form.get('cellphone')
 
-        customer = Customer(name=name, email=email, cellphone_number=cellphone)
-        db.session.add(customer)
-        db.session.commit()
-        return 'sucesso'
+        if not name or not name_validator(name=name):
+            return jsonify({"message": "The 'name' field is missing or invalid"}), 400
+        if not email or not email_validator(email=email):
+            return jsonify({'message': "The 'email' field is missing or invalid"}), 400
+        if not cellphone or not cellphone_validator(cellphone=cellphone):
+            return jsonify({'message': "The 'cellphone' field is missing or invalid"}), 400
+
+        created = CustomerController.create_customer(name=name, email=email, cellphone=cellphone)
+        if created:
+            return jsonify({'message': 'Customer created successfully'})
+        return jsonify({'message': 'Something went wrong creating Customer'}), 500
 
 
-@app.route('/customer/<int:id>', methods=['GET', 'PUT', 'DELETE'])
-def customer_by_id(id):
+@app.route('/customer/<int:customer_id>', methods=['GET', 'PUT', 'DELETE'])
+def customer_by_id(customer_id):
     if request.method == 'GET':
-        items = Customer.get(id)
-        return jsonify(items.__repr__())
+        result = CustomerController.get_one(id_customer=customer_id)
+        if result:
+            return jsonify(result)
+        return jsonify({'message': 'Customer not found'}), 400
     if request.method == 'PUT':
         name = request.form.get('name')
         email = request.form.get('email')
         cellphone = request.form.get('cellphone')
 
-        customer = Customer.get(id)
-        customer.name = name if name else customer.name
-        customer.email = email if email else customer.email
-        customer.cellphone_number = cellphone if cellphone else customer.cellphone_number
-        db.session.add(customer)
-        db.session.commit()
-        return 'sucesso'
+        if name and not name_validator(name=name):
+            return jsonify({"message": "The 'name' field is invalid"}), 400
+        if email and not email_validator(email=email):
+            return jsonify({'message': "The 'email' field is invalid"}), 400
+        if cellphone and not cellphone_validator(cellphone=cellphone):
+            return jsonify({'message': "The 'cellphone' field is invalid"}), 400
+
+        result = CustomerController.update_customer(id_customer=customer_id, name=name, email=email,
+                                                    cellphone=cellphone)
+        if result:
+            return jsonify({'message': 'Customer updated sucessfully'})
+        return jsonify({'message': 'Customer not found'}), 400
 
     if request.method == 'DELETE':
-        customer = Customer.get(id)
-        db.session.delete(customer)
-        db.session.commit()
-
-        return 'sucesso'
-
-
-@app.route('/customer_cars/<int:id>', methods=['GET'])
-def customer_cars(id):
-    items = [car.__repr__() for car in Car.get_by_owner_id(id)]
-    return jsonify(items.__repr__())
+        result = CustomerController.delete_customer(id_customer=customer_id)
+        if result:
+            return jsonify({'message': 'Customer deleted'})
+        return jsonify({'message': 'Something went wrong deleting Customer'}), 500
 
 
 @app.route('/car', methods=['GET', 'POST'])
 def car():
     if request.method == 'GET':
-        items = [car.__repr__() for car in Car.get()]
+        color = request.args.get('color')
+        model = request.args.get('model')
+        items = CarController.get_all(color=color, model=model)
         return jsonify(items)
 
     if request.method == 'POST':
-        id_owner = int(request.form['id_owner'])
-        color = request.form['color']
-        model = request.form['model']
+        id_owner = request.form.get('id_owner')
+        color = request.form.get('color')
+        model = request.form.get('model')
 
-        owner = Customer.get(id_owner)
-        car = Car(owner=owner, color=color, model=model)
-        db.session.add(car)
-        db.session.commit()
-        return 'sucesso'
+        if not id_owner:
+            return jsonify({'message': "id_owner must be informed"}), 400
+
+        if not color_validator(color=color):
+            return jsonify({'message': "The 'color' field is missing or invalid."
+                                       "It must be 'gray', 'blue' or 'yellow'"}), 400
+        if not model_validator(model=model):
+            return jsonify({'message': "The 'model' field is missing or invalid."
+                                       "It must be 'sedan', 'hatch' or 'convertible'"}), 400
+
+        result, message = CarController.create_car(id_owner=int(id_owner), color=color, model=model)
+        if result:
+            return jsonify({'message': message})
+        return jsonify({'message': message}), 400
 
 
-@app.route('/car/<int:id>', methods=['GET', 'PUT', 'DELETE'])
-def car_by_id(id):
+@app.route('/car/<int:id_car>', methods=['GET', 'PUT', 'DELETE'])
+def car_by_id(id_car):
     if request.method == 'GET':
-        items = Car.get(id)
-        return jsonify(items.__repr__())
+        result = CarController.get_one(id_car=id_car)
+        if result:
+            return jsonify(result)
+        return jsonify({'message': 'Customer not found'}), 400
 
     if request.method == 'PUT':
-        color = request.form['color']
+        color = request.form.get('color')
+        model = request.form.get('model')
 
-        car = Car.get(id)
-        car.color = color if color else car.color
-        db.session.add(car)
-        db.session.commit()
-        return 'sucesso'
+        if color and not color_validator(color=color):
+            return jsonify({'message': "The 'color' field is  invalid.It must be 'gray', 'blue' or 'yellow'"}), 400
+        if model and not model_validator(model=model):
+            return jsonify({'message': "The 'model' field is  invalid."
+                                       "It must be 'sedan', 'hatch' or 'convertible'"}), 400
+
+        result = CarController.update_car(id_car=id_car, color=color, model=model)
+        if result:
+            return jsonify({'message': 'Car updated sucessfully'})
+        return jsonify({'message': 'Something went wrong updating Car'}), 400
 
     if request.method == 'DELETE':
-        car = Car.get(id)
-        car.delete_car()
-        db.session.delete(car)
-        db.session.commit()
+        result = CarController.delete_car(id_car=id_car)
+        if result:
+            return jsonify({'message': 'Car deleted sucessfully'})
+        return jsonify({'message': 'Something went wrong deleting Car'}), 400
 
-        return 'sucesso'
 
+with app.app_context():
+    print('Creating Database...')
+    db.create_all()
+    print('All Done!')
 
 if __name__ == '__main__':
     app.run()
